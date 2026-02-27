@@ -1,0 +1,26 @@
+{
+  "name": "Personal Timesheet Tracker",
+  "short_name": "Timesheet",
+  "description": "Personal timesheet tracker with multi-shift support and Excel export",
+  "start_url": "/personal-timesheet-app/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/personal-timesheet-app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/personal-timesheet-app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "screenshots": []
+}

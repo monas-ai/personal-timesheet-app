@@ -56,85 +56,86 @@ function App() {
   const shiftCount = shifts.length;
   
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              {/* Month selector */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header - mobile optimized */}
+      <header className="bg-white border-b sticky top-0 z-40 shadow-sm">
+        <div className="px-3 sm:px-4 py-3">
+          {/* Month selector */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handlePrevMonth}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                aria-label="Previous month"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               
-              <h1 className="text-2xl font-bold min-w-[140px] text-center">
+              <h1 className="text-xl sm:text-2xl font-bold min-w-[120px] text-center">
                 {format(currentMonth, 'MM/yyyy')}
               </h1>
               
               <button
                 onClick={handleNextMonth}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                aria-label="Next month"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
             
-            {/* Actions */}
-            <div className="flex items-center gap-2">
+            {/* Actions - mobile optimized */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => setSelectedDate(format(new Date(), 'yyyy-MM-dd'))}
-                className="px-4 py-2 border rounded-lg hover:bg-neutral-50 transition-colors flex items-center gap-2"
+                className="p-2 sm:px-3 sm:py-2 border rounded-lg hover:bg-gray-50 active:scale-95 transition-all"
+                aria-label="Add shift"
               >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add Shift</span>
+                <Plus className="w-5 h-5" />
               </button>
               
               <button
                 onClick={handleExport}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
+                className="p-2 sm:px-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95 transition-all shadow-sm"
+                aria-label="Export to Excel"
               >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Export Excel</span>
+                <Download className="w-5 h-5" />
               </button>
             </div>
           </div>
           
-          {/* Stats */}
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-neutral-600">Total:</span>
-              <span className="font-semibold">{formatDuration(totalHours)}</span>
+          {/* Stats - mobile optimized grid */}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
+            <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1.5 rounded">
+              <span className="text-gray-600">Total:</span>
+              <span className="font-bold text-blue-700">{formatDuration(totalHours)}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-neutral-600">OT:</span>
-              <span className="font-semibold text-orange-600">
-                {formatDuration(otHours)}
-              </span>
+            {otHours > 0 && (
+              <div className="flex items-center gap-1.5 bg-orange-50 px-2.5 py-1.5 rounded">
+                <span className="text-gray-600">OT:</span>
+                <span className="font-bold text-orange-700">{formatDuration(otHours)}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 bg-green-50 px-2.5 py-1.5 rounded">
+              <span className="text-gray-600">Days:</span>
+              <span className="font-bold text-green-700">{workingDays}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-neutral-600">Days:</span>
-              <span className="font-semibold">{workingDays}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-neutral-600">Shifts:</span>
-              <span className="font-semibold">{shiftCount}</span>
+            <div className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1.5 rounded">
+              <span className="text-gray-600">Shifts:</span>
+              <span className="font-bold text-purple-700">{shiftCount}</span>
             </div>
           </div>
         </div>
       </header>
       
-      {/* Main content */}
-      <main className="container mx-auto px-4 py-6">
+      {/* Main content - mobile padding */}
+      <main className="px-3 sm:px-4 py-4 sm:py-6 max-w-6xl mx-auto">
         <Calendar month={currentMonth} onDateClick={handleDateClick} />
       </main>
       
       {/* Day Drawer */}
       {selectedDate && (
         <>
-          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/20 z-40"
             onClick={() => setSelectedDate(null)}

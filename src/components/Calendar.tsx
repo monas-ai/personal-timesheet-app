@@ -1,12 +1,12 @@
-// Calendar component - monthly grid view
+// Calendar component - mobile-first monthly grid
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, getDay } from 'date-fns';
 import { useShiftStore } from '../stores/shifts';
 import { formatDuration } from '../lib/utils';
 import { cn } from '../lib/utils';
-import { AlertCircle } from 'lucide-react';
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const WEEKDAYS_FULL = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 interface CalendarProps {
   month: Date;
@@ -20,7 +20,6 @@ export function Calendar({ month, onDateClick }: CalendarProps) {
   const monthEnd = endOfMonth(month);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   
-  // Pad start with empty cells for proper alignment
   const startDayOfWeek = getDay(monthStart);
   const paddingDays = Array(startDayOfWeek).fill(null);
   
@@ -38,50 +37,41 @@ export function Calendar({ month, onDateClick }: CalendarProps) {
     const isCurrentDay = isToday(day);
     const isInMonth = isSameMonth(day, month);
     
-    // Check for warnings
-    const hasLongDay = totalHours > 16;
-    const hasOverlap = false; // TODO: implement overlap detection
-    
     return (
       <button
         key={dateStr}
         onClick={() => onDateClick(dateStr)}
         className={cn(
-          'aspect-square p-2 border rounded-lg transition-colors relative',
-          'hover:border-primary-500 hover:bg-primary-50',
-          isCurrentDay && 'border-primary-500 bg-primary-50',
+          'aspect-square p-1 sm:p-2 border rounded-lg transition-all relative',
+          'hover:border-blue-500 hover:bg-blue-50 active:scale-95',
+          'min-h-[60px] sm:min-h-[80px]',
+          isCurrentDay && 'border-blue-500 bg-blue-50 ring-2 ring-blue-200',
           !isInMonth && 'opacity-30',
-          hasShifts && 'bg-neutral-50'
+          hasShifts && 'bg-green-50 border-green-300'
         )}
       >
-        <div className="flex flex-col h-full">
-          {/* Date number */}
-          <div className="text-sm font-medium mb-1">
+        <div className="flex flex-col h-full text-left">
+          {/* Date number - larger on mobile */}
+          <div className={cn(
+            'text-base sm:text-sm font-semibold mb-0.5',
+            isCurrentDay && 'text-blue-600',
+            hasShifts && !isCurrentDay && 'text-green-700'
+          )}>
             {format(day, 'd')}
           </div>
           
-          {/* Shift info */}
+          {/* Shift info - mobile optimized */}
           {hasShifts && (
-            <>
-              <div className="text-xs font-semibold text-primary-600">
+            <div className="flex-1 flex flex-col justify-end">
+              <div className="text-xs font-bold text-green-700 leading-tight">
                 {formatDuration(totalHours)}
               </div>
-              <div className="text-xs text-neutral-500">
-                {shifts.length} shift{shifts.length > 1 ? 's' : ''}
-              </div>
-              
-              {/* Badge */}
-              <div className="mt-auto">
-                <span className="inline-block px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-700">
-                  Work
-                </span>
-              </div>
-            </>
-          )}
-          
-          {/* Warning icon */}
-          {(hasLongDay || hasOverlap) && (
-            <AlertCircle className="absolute top-1 right-1 w-3 h-3 text-orange-500" />
+              {shifts.length > 1 && (
+                <div className="text-[10px] text-gray-500 leading-tight">
+                  {shifts.length}×
+                </div>
+              )}
+            </div>
           )}
         </div>
       </button>
@@ -90,17 +80,22 @@ export function Calendar({ month, onDateClick }: CalendarProps) {
   
   return (
     <div className="w-full">
-      {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-2 mb-2">
-        {WEEKDAYS.map((day) => (
-          <div key={day} className="text-center text-sm font-medium text-neutral-500">
-            {day}
+      {/* Weekday headers - responsive */}
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-1 sm:mb-2">
+        {WEEKDAYS.map((day, i) => (
+          <div key={day} className="text-center">
+            <span className="text-xs sm:text-sm font-medium text-gray-600 sm:hidden">
+              {day}
+            </span>
+            <span className="text-sm font-medium text-gray-600 hidden sm:inline">
+              {WEEKDAYS_FULL[i]}
+            </span>
           </div>
         ))}
       </div>
       
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-2">
+      {/* Calendar grid - responsive gap */}
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {allDays.map((day) => renderDayCell(day))}
       </div>
     </div>
