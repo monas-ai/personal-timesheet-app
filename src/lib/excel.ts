@@ -1,41 +1,41 @@
-// Excel export functionality using SheetJS
+// Excel export - Vietnamese standard format
 
 import * as XLSX from 'xlsx';
 import type { Shift, Settings } from '../types';
-import { format } from 'date-fns';
 import { calculateShiftHours, formatDate } from './utils';
 
 interface ShiftRow {
-  Date: string;
-  Day: string;
-  'Shift#': number;
-  Start: string;
-  End: string;
-  Break: number;
-  Hours: number;
-  Type: string;
-  Project?: string;
-  Location?: string;
-  Note?: string;
+  'STT': number;
+  'Ngày': string;
+  'Thứ': string;
+  'Ca': number;
+  'Giờ bắt đầu': string;
+  'Giờ kết thúc': string;
+  'Nghỉ (phút)': number;
+  'Tổng giờ': number;
+  'Loại ca': string;
+  'Dự án'?: string;
+  'Địa điểm'?: string;
+  'Ghi chú'?: string;
 }
 
-interface SummaryData {
-  totalHours: number;
-  totalOT: number;
-  workingDays: number;
-  shiftCount: number;
-  weeklyTotals: { week: number; hours: number }[];
-  typeBreakdown: { type: string; hours: number }[];
-}
-
-function getDayOfWeek(date: string): string {
-  return format(new Date(date), 'EEE');
-}
-
-function getWeekNumber(date: string): number {
+function getVietnameseDay(date: string): string {
   const d = new Date(date);
-  const day = d.getDate();
-  return Math.ceil(day / 7);
+  const day = d.getDay();
+  const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+  return days[day];
+}
+
+function getShiftTypeName(type: string): string {
+  const types: Record<string, string> = {
+    'normal': 'Thường',
+    'ot': 'Làm thêm',
+    'night': 'Ca đêm',
+    'leave': 'Nghỉ phép',
+    'training': 'Đào tạo',
+    'travel': 'Công tác',
+  };
+  return types[type] || type;
 }
 
 function generateTimesheetData(shifts: Shift[], settings: Settings): ShiftRow[] {
@@ -54,6 +54,7 @@ function generateTimesheetData(shifts: Shift[], settings: Settings): ShiftRow[] 
   const sortedDates = Object.keys(shiftsByDate).sort();
   
   // Generate rows
+  let stt = 1;
   sortedDates.forEach((date) => {
     const dayShifts = shiftsByDate[date].sort((a, b) =>
       a.start.localeCompare(b.start)
@@ -61,105 +62,32 @@ function generateTimesheetData(shifts: Shift[], settings: Settings): ShiftRow[] 
     
     dayShifts.forEach((shift, index) => {
       const row: ShiftRow = {
-        Date: formatDate(date, 'dd/MM/yyyy'),
-        Day: getDayOfWeek(date),
-        'Shift#': index + 1,
-        Start: shift.start,
-        End: shift.end,
-        Break: shift.breakMinutes,
-        Hours: parseFloat(
+        'STT': stt++,
+        'Ngày': formatDate(date, 'dd/MM/yyyy'),
+        'Thứ': getVietnameseDay(date),
+        'Ca': index + 1,
+        'Giờ bắt đầu': shift.start,
+        'Giờ kết thúc': shift.end,
+        'Nghỉ (phút)': shift.breakMinutes,
+        'Tổng giờ': parseFloat(
           calculateShiftHours(shift.start, shift.end, shift.breakMinutes).toFixed(2)
         ),
-        Type: shift.type.charAt(0).toUpperCase() + shift.type.slice(1),
+        'Loại ca': getShiftTypeName(shift.type),
       };
       
       // Add optional columns based on settings
       if (settings.excelColumns.project && shift.project) {
-        row.Project = shift.project;
+        row['Dự án'] = shift.project;
       }
       if (settings.excelColumns.location && shift.location) {
-        row.Location = shift.location;
+        row['Địa điểm'] = shift.location;
       }
       if (settings.excelColumns.note && shift.note) {
-        row.Note = shift.note;
+        row['Ghi chú'] = shift.note;
       }
       
       rows.push(row);
     });
-  });
-  
-  return rows;
-}
-
-function calculateSummary(shifts: Shift[]): SummaryData {
-  const totalHours = shifts.reduce((total, shift) => {
-    return total + calculateShiftHours(shift.start, shift.end, shift.breakMinutes);
-  }, 0);
-  
-  const totalOT = shifts
-    .filter((s) => s.type === 'ot')
-    .reduce((total, shift) => {
-      return total + calculateShiftHours(shift.start, shift.end, shift.breakMinutes);
-    }, 0);
-  
-  const uniqueDates = new Set(shifts.map((s) => s.date));
-  const workingDays = uniqueDates.size;
-  
-  const shiftCount = shifts.length;
-  
-  // Weekly totals
-  const weeklyMap: Record<number, number> = {};
-  shifts.forEach((shift) => {
-    const week = getWeekNumber(shift.date);
-    const hours = calculateShiftHours(shift.start, shift.end, shift.breakMinutes);
-    weeklyMap[week] = (weeklyMap[week] || 0) + hours;
-  });
-  
-  const weeklyTotals = Object.entries(weeklyMap)
-    .map(([week, hours]) => ({ week: parseInt(week), hours }))
-    .sort((a, b) => a.week - b.week);
-  
-  // Type breakdown
-  const typeMap: Record<string, number> = {};
-  shifts.forEach((shift) => {
-    const hours = calculateShiftHours(shift.start, shift.end, shift.breakMinutes);
-    typeMap[shift.type] = (typeMap[shift.type] || 0) + hours;
-  });
-  
-  const typeBreakdown = Object.entries(typeMap).map(([type, hours]) => ({
-    type: type.charAt(0).toUpperCase() + type.slice(1),
-    hours,
-  }));
-  
-  return {
-    totalHours,
-    totalOT,
-    workingDays,
-    shiftCount,
-    weeklyTotals,
-    typeBreakdown,
-  };
-}
-
-function generateSummarySheet(summary: SummaryData): any[][] {
-  const rows: any[][] = [];
-  
-  rows.push(['Metric', 'Value']);
-  rows.push(['Total Hours', summary.totalHours.toFixed(2)]);
-  rows.push(['Total OT', summary.totalOT.toFixed(2)]);
-  rows.push(['Working Days', summary.workingDays]);
-  rows.push(['Total Shifts', summary.shiftCount]);
-  rows.push([]);
-  
-  rows.push(['Weekly Breakdown']);
-  summary.weeklyTotals.forEach((week) => {
-    rows.push([`Week ${week.week}`, week.hours.toFixed(2)]);
-  });
-  rows.push([]);
-  
-  rows.push(['Type Breakdown']);
-  summary.typeBreakdown.forEach((type) => {
-    rows.push([type.type, type.hours.toFixed(2)]);
   });
   
   return rows;
@@ -173,40 +101,103 @@ export function exportToExcel(
   // Create workbook
   const wb = XLSX.utils.book_new();
   
-  // Sheet 1: Timesheet
+  // Sheet 1: Bảng chấm công
   const timesheetData = generateTimesheetData(shifts, settings);
   const timesheetWS = XLSX.utils.json_to_sheet(timesheetData);
   
   // Format timesheet sheet
-  timesheetWS['!cols'] = [
-    { wch: 12 }, // Date
-    { wch: 6 },  // Day
-    { wch: 8 },  // Shift#
-    { wch: 8 },  // Start
-    { wch: 8 },  // End
-    { wch: 8 },  // Break
-    { wch: 8 },  // Hours
-    { wch: 10 }, // Type
-    { wch: 15 }, // Project
-    { wch: 15 }, // Location
-    { wch: 30 }, // Note
+  const colWidths = [
+    { wch: 6 },  // STT
+    { wch: 12 }, // Ngày
+    { wch: 10 }, // Thứ
+    { wch: 6 },  // Ca
+    { wch: 12 }, // Giờ bắt đầu
+    { wch: 12 }, // Giờ kết thúc
+    { wch: 12 }, // Nghỉ
+    { wch: 10 }, // Tổng giờ
+    { wch: 12 }, // Loại ca
+    { wch: 20 }, // Dự án
+    { wch: 20 }, // Địa điểm
+    { wch: 35 }, // Ghi chú
+  ];
+  timesheetWS['!cols'] = colWidths;
+  
+  // Add header styling (bold, background color)
+  const range = XLSX.utils.decode_range(timesheetWS['!ref'] || 'A1');
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    const address = XLSX.utils.encode_col(C) + "1";
+    if (!timesheetWS[address]) continue;
+    timesheetWS[address].s = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "4472C4" } },
+      alignment: { horizontal: "center", vertical: "center" },
+    };
+  }
+  
+  XLSX.utils.book_append_sheet(wb, timesheetWS, 'Bảng chấm công');
+  
+  // Sheet 2: Tổng hợp
+  const totalHours = shifts.reduce((sum, s) => 
+    sum + calculateShiftHours(s.start, s.end, s.breakMinutes), 0
+  );
+  const totalOT = shifts.filter(s => s.type === 'ot').reduce((sum, s) => 
+    sum + calculateShiftHours(s.start, s.end, s.breakMinutes), 0
+  );
+  const workingDays = new Set(shifts.map(s => s.date)).size;
+  const shiftCount = shifts.length;
+  
+  // Calculate weekly totals
+  const weeklyMap: Record<number, number> = {};
+  shifts.forEach((shift) => {
+    const d = new Date(shift.date);
+    const week = Math.ceil(d.getDate() / 7);
+    const hours = calculateShiftHours(shift.start, shift.end, shift.breakMinutes);
+    weeklyMap[week] = (weeklyMap[week] || 0) + hours;
+  });
+  
+  // Type breakdown
+  const typeMap: Record<string, number> = {};
+  shifts.forEach((shift) => {
+    const hours = calculateShiftHours(shift.start, shift.end, shift.breakMinutes);
+    const typeName = getShiftTypeName(shift.type);
+    typeMap[typeName] = (typeMap[typeName] || 0) + hours;
+  });
+  
+  const summaryData: any[][] = [
+    ['CHỈ TIÊU', 'GIÁ TRỊ'],
+    ['Tổng giờ làm việc', totalHours.toFixed(2)],
+    ['Giờ làm thêm', totalOT.toFixed(2)],
+    ['Số ngày làm việc', workingDays],
+    ['Tổng số ca', shiftCount],
+    [],
+    ['PHÂN BỔ THEO TUẦN'],
+    ...Object.entries(weeklyMap).map(([week, hours]) => [`Tuần ${week}`, hours.toFixed(2)]),
+    [],
+    ['PHÂN BỔ THEO LOẠI CA'],
+    ...Object.entries(typeMap).map(([type, hours]) => [type, hours.toFixed(2)]),
   ];
   
-  XLSX.utils.book_append_sheet(wb, timesheetWS, 'Timesheet');
-  
-  // Sheet 2: Summary
-  const summary = calculateSummary(shifts);
-  const summaryData = generateSummarySheet(summary);
   const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
-  
   summaryWS['!cols'] = [
-    { wch: 20 }, // Metric
-    { wch: 15 }, // Value
+    { wch: 25 }, // Chỉ tiêu
+    { wch: 15 }, // Giá trị
   ];
   
-  XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+  // Style summary headers
+  ['A1', 'B1', 'A7', 'A10'].forEach(addr => {
+    if (summaryWS[addr]) {
+      summaryWS[addr].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "70AD47" } },
+        alignment: { horizontal: "center", vertical: "center" },
+      };
+    }
+  });
+  
+  XLSX.utils.book_append_sheet(wb, summaryWS, 'Tổng hợp');
   
   // Write file
-  const filename = `Timesheet_${month}.xlsx`;
+  const [year, monthNum] = month.split('-');
+  const filename = `BangChamCong_Thang${monthNum}_${year}.xlsx`;
   XLSX.writeFile(wb, filename);
 }

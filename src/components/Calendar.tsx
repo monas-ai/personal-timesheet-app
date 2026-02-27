@@ -1,12 +1,11 @@
-// Calendar component - mobile-first monthly grid
+// Calendar component - beautiful mobile-first
 
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, getDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, getDay, isWeekend } from 'date-fns';
 import { useShiftStore } from '../stores/shifts';
 import { formatDuration } from '../lib/utils';
 import { cn } from '../lib/utils';
 
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const WEEKDAYS_FULL = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
 interface CalendarProps {
   month: Date;
@@ -36,41 +35,59 @@ export function Calendar({ month, onDateClick }: CalendarProps) {
     const hasShifts = shifts.length > 0;
     const isCurrentDay = isToday(day);
     const isInMonth = isSameMonth(day, month);
+    const isWeekendDay = isWeekend(day);
     
     return (
       <button
         key={dateStr}
         onClick={() => onDateClick(dateStr)}
         className={cn(
-          'aspect-square p-1 sm:p-2 border rounded-lg transition-all relative',
-          'hover:border-blue-500 hover:bg-blue-50 active:scale-95',
-          'min-h-[60px] sm:min-h-[80px]',
-          isCurrentDay && 'border-blue-500 bg-blue-50 ring-2 ring-blue-200',
+          'aspect-square p-2 border-2 rounded-xl transition-all relative overflow-hidden group',
+          'hover:border-blue-400 hover:shadow-lg active:scale-95',
+          'min-h-[70px] sm:min-h-[90px]',
+          isCurrentDay && 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 ring-4 ring-blue-200/50',
           !isInMonth && 'opacity-30',
-          hasShifts && 'bg-green-50 border-green-300'
+          hasShifts && !isCurrentDay && 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300',
+          !hasShifts && !isCurrentDay && 'bg-white hover:bg-gray-50',
+          isWeekendDay && !hasShifts && !isCurrentDay && 'bg-gray-50'
         )}
       >
-        <div className="flex flex-col h-full text-left">
-          {/* Date number - larger on mobile */}
-          <div className={cn(
-            'text-base sm:text-sm font-semibold mb-0.5',
-            isCurrentDay && 'text-blue-600',
-            hasShifts && !isCurrentDay && 'text-green-700'
-          )}>
-            {format(day, 'd')}
+        {/* Background gradient on hover */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-400/0 to-purple-400/0 group-hover:from-blue-400/10 group-hover:to-purple-400/10 transition-all" />
+        
+        <div className="relative flex flex-col h-full text-left">
+          {/* Date number with badge */}
+          <div className="flex items-center justify-between mb-1">
+            <div className={cn(
+              'text-lg sm:text-xl font-bold',
+              isCurrentDay && 'text-blue-600',
+              hasShifts && !isCurrentDay && 'text-green-700',
+              !hasShifts && !isCurrentDay && 'text-gray-700',
+              isWeekendDay && !hasShifts && !isCurrentDay && 'text-gray-500'
+            )}>
+              {format(day, 'd')}
+            </div>
+            
+            {hasShifts && (
+              <div className="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {shifts.length}
+              </div>
+            )}
           </div>
           
-          {/* Shift info - mobile optimized */}
+          {/* Shift info with icon */}
           {hasShifts && (
-            <div className="flex-1 flex flex-col justify-end">
-              <div className="text-xs font-bold text-green-700 leading-tight">
-                {formatDuration(totalHours)}
+            <div className="flex-1 flex flex-col justify-end space-y-1">
+              <div className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-sm">
+                ⏱ {formatDuration(totalHours)}
               </div>
-              {shifts.length > 1 && (
-                <div className="text-[10px] text-gray-500 leading-tight">
-                  {shifts.length}×
-                </div>
-              )}
+            </div>
+          )}
+          
+          {/* Weekend indicator */}
+          {isWeekendDay && !hasShifts && (
+            <div className="absolute bottom-2 right-2 text-gray-400 text-xs">
+              🏖️
             </div>
           )}
         </div>
@@ -80,22 +97,22 @@ export function Calendar({ month, onDateClick }: CalendarProps) {
   
   return (
     <div className="w-full">
-      {/* Weekday headers - responsive */}
-      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-1 sm:mb-2">
+      {/* Weekday headers with gradient */}
+      <div className="grid grid-cols-7 gap-2 mb-3">
         {WEEKDAYS.map((day, i) => (
           <div key={day} className="text-center">
-            <span className="text-xs sm:text-sm font-medium text-gray-600 sm:hidden">
+            <div className={cn(
+              "text-sm font-bold py-2 rounded-lg",
+              i === 0 ? "bg-gradient-to-r from-red-500 to-pink-500 text-white" : "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+            )}>
               {day}
-            </span>
-            <span className="text-sm font-medium text-gray-600 hidden sm:inline">
-              {WEEKDAYS_FULL[i]}
-            </span>
+            </div>
           </div>
         ))}
       </div>
       
-      {/* Calendar grid - responsive gap */}
-      <div className="grid grid-cols-7 gap-1 sm:gap-2">
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-2">
         {allDays.map((day) => renderDayCell(day))}
       </div>
     </div>

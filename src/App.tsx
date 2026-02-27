@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { addMonths, subMonths, format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Download, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar } from './components/Calendar';
 import { DayDrawer } from './components/DayDrawer';
 import { useShiftStore } from './stores/shifts';
@@ -56,88 +56,97 @@ function App() {
   const shiftCount = shifts.length;
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header - mobile optimized */}
-      <header className="bg-white border-b sticky top-0 z-40 shadow-sm">
-        <div className="px-3 sm:px-4 py-3">
-          {/* Month selector */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Header - gradient + shadow */}
+      <header className="bg-white border-b sticky top-0 z-40 shadow-md">
+        <div className="px-3 sm:px-6 py-4">
+          {/* Month selector with gradient */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <CalendarIcon className="w-6 h-6 text-blue-600 hidden sm:block" />
+              
               <button
                 onClick={handlePrevMonth}
-                className="p-2 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
-                aria-label="Previous month"
+                className="p-2 hover:bg-blue-50 rounded-lg active:scale-95 transition-all"
+                aria-label="Tháng trước"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-5 h-5 text-blue-600" />
               </button>
               
-              <h1 className="text-xl sm:text-2xl font-bold min-w-[120px] text-center">
-                {format(currentMonth, 'MM/yyyy')}
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent min-w-[120px] text-center">
+                Tháng {format(currentMonth, 'MM/yyyy')}
               </h1>
               
               <button
                 onClick={handleNextMonth}
-                className="p-2 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
-                aria-label="Next month"
+                className="p-2 hover:bg-blue-50 rounded-lg active:scale-95 transition-all"
+                aria-label="Tháng sau"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5 text-blue-600" />
               </button>
             </div>
             
-            {/* Actions - mobile optimized */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Actions with gradient buttons */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedDate(format(new Date(), 'yyyy-MM-dd'))}
-                className="p-2 sm:px-3 sm:py-2 border rounded-lg hover:bg-gray-50 active:scale-95 transition-all"
-                aria-label="Add shift"
+                className="p-2 sm:px-4 sm:py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 active:scale-95 transition-all shadow-md flex items-center gap-2"
+                aria-label="Thêm ca"
               >
                 <Plus className="w-5 h-5" />
+                <span className="hidden sm:inline font-medium">Thêm ca</span>
               </button>
               
               <button
                 onClick={handleExport}
-                className="p-2 sm:px-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95 transition-all shadow-sm"
-                aria-label="Export to Excel"
+                className="p-2 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 active:scale-95 transition-all shadow-md flex items-center gap-2"
+                aria-label="Xuất Excel"
               >
                 <Download className="w-5 h-5" />
+                <span className="hidden sm:inline font-medium">Xuất Excel</span>
               </button>
             </div>
           </div>
           
-          {/* Stats - mobile optimized grid */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
-            <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1.5 rounded">
-              <span className="text-gray-600">Total:</span>
-              <span className="font-bold text-blue-700">{formatDuration(totalHours)}</span>
+          {/* Stats with colorful cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl shadow-lg">
+              <div className="text-blue-100 text-xs font-medium mb-1">Tổng giờ</div>
+              <div className="text-white text-lg font-bold">{formatDuration(totalHours)}</div>
             </div>
+            
             {otHours > 0 && (
-              <div className="flex items-center gap-1.5 bg-orange-50 px-2.5 py-1.5 rounded">
-                <span className="text-gray-600">OT:</span>
-                <span className="font-bold text-orange-700">{formatDuration(otHours)}</span>
+              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg">
+                <div className="text-orange-100 text-xs font-medium mb-1">Làm thêm</div>
+                <div className="text-white text-lg font-bold">{formatDuration(otHours)}</div>
               </div>
             )}
-            <div className="flex items-center gap-1.5 bg-green-50 px-2.5 py-1.5 rounded">
-              <span className="text-gray-600">Days:</span>
-              <span className="font-bold text-green-700">{workingDays}</span>
+            
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-xl shadow-lg">
+              <div className="text-green-100 text-xs font-medium mb-1">Số ngày</div>
+              <div className="text-white text-lg font-bold">{workingDays}</div>
             </div>
-            <div className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1.5 rounded">
-              <span className="text-gray-600">Shifts:</span>
-              <span className="font-bold text-purple-700">{shiftCount}</span>
+            
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-xl shadow-lg">
+              <div className="text-purple-100 text-xs font-medium mb-1">Số ca</div>
+              <div className="text-white text-lg font-bold">{shiftCount}</div>
             </div>
           </div>
         </div>
       </header>
       
-      {/* Main content - mobile padding */}
-      <main className="px-3 sm:px-4 py-4 sm:py-6 max-w-6xl mx-auto">
-        <Calendar month={currentMonth} onDateClick={handleDateClick} />
+      {/* Main content with card wrapper */}
+      <main className="px-3 sm:px-6 py-6 max-w-7xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
+          <Calendar month={currentMonth} onDateClick={handleDateClick} />
+        </div>
       </main>
       
       {/* Day Drawer */}
       {selectedDate && (
         <>
           <div
-            className="fixed inset-0 bg-black/20 z-40"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setSelectedDate(null)}
           />
           
