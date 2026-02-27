@@ -77,3 +77,36 @@ export function shiftsOverlap(
   
   return s1Start < s2End && s2Start < s1End;
 }
+
+// Salary calculation
+export function calculateSalary(shifts: any[], salarySettings: any) {
+  let normalHours = 0;
+  let otHours = 0;
+  let nightHours = 0;
+  
+  shifts.forEach((shift) => {
+    const hours = calculateShiftHours(shift.start, shift.end, shift.breakMinutes);
+    
+    if (shift.type === 'ot') {
+      otHours += hours;
+    } else if (shift.type === 'night') {
+      nightHours += hours;
+    } else if (shift.type === 'normal') {
+      normalHours += hours;
+    }
+  });
+  
+  const normalPay = normalHours * salarySettings.hourlyRate;
+  const otPay = otHours * salarySettings.hourlyRate * salarySettings.otMultiplier;
+  const nightPay = nightHours * salarySettings.hourlyRate * salarySettings.nightMultiplier;
+  
+  return {
+    normalHours,
+    otHours,
+    nightHours,
+    normalPay,
+    otPay,
+    nightPay,
+    total: normalPay + otPay + nightPay,
+  };
+}

@@ -1,4 +1,4 @@
-// Core types for the timesheet app
+// Core TypeScript interfaces
 
 export type ShiftType = 'normal' | 'ot' | 'night' | 'leave' | 'training' | 'travel';
 
@@ -20,12 +20,25 @@ export interface Shift {
 export interface ShiftTemplate {
   id: string;
   name: string;
-  shifts: Omit<Shift, 'id' | 'date' | 'createdAt' | 'updatedAt'>[];
+  shifts: Array<{
+    start: string;
+    end: string;
+    breakMinutes: number;
+    type: ShiftType;
+    tags: string[];
+  }>;
+}
+
+export interface SalarySettings {
+  enabled: boolean;
+  hourlyRate: number; // VND per hour
+  otMultiplier: number; // 1.5x for OT
+  nightMultiplier: number; // 1.3x for night shift
 }
 
 export interface Settings {
-  workWeek: number[]; // [1,2,3,4,5] for Mon-Fri
-  roundingMinutes: 5 | 10 | 15;
+  workWeek: number[]; // [1,2,3,4,5] = Mon-Fri
+  roundingMinutes: number;
   autoBreak: {
     enabled: boolean;
     afterHours: number;
@@ -33,7 +46,7 @@ export interface Settings {
   };
   otRule: {
     enabled: boolean;
-    afterTime: string; // HH:mm
+    afterTime: string;
   };
   templates: ShiftTemplate[];
   excelColumns: {
@@ -42,15 +55,14 @@ export interface Settings {
     note: boolean;
     tags: boolean;
   };
+  salary: SalarySettings;
 }
 
 export interface MonthRecord {
   id: string; // YYYY-MM
-  month: string; // YYYY-MM
-  shifts: Shift[];
-  holidays: string[]; // [YYYY-MM-DD]
+  month: string;
   isLocked: boolean;
-  settingsSnapshot?: Settings;
+  note?: string;
 }
 
 export interface ValidationError {

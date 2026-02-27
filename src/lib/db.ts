@@ -38,33 +38,18 @@ export async function initializeSettings(): Promise<Settings> {
       enabled: true,
       afterTime: '18:00',
     },
-    templates: [
-      {
-        id: 'office-9-6',
-        name: 'Office 9-6',
-        shifts: [
-          {
-            start: '09:00',
-            end: '12:00',
-            breakMinutes: 0,
-            type: 'normal',
-            tags: [],
-          },
-          {
-            start: '13:30',
-            end: '18:00',
-            breakMinutes: 0,
-            type: 'normal',
-            tags: [],
-          },
-        ],
-      },
-    ],
+    templates: [],
     excelColumns: {
       project: true,
       location: true,
       note: true,
       tags: false,
+    },
+    salary: {
+      enabled: false,
+      hourlyRate: 50000, // 50k VND/hour default
+      otMultiplier: 1.5,
+      nightMultiplier: 1.3,
     },
   };
 
